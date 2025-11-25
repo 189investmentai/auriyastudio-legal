@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OAuth Redirect</title>
+    <script>
+        // Extract OAuth parameters from URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const hashParams = new URLSearchParams(window.location.hash.substring(1));
+        
+        // Get provider from query params or default
+        const provider = urlParams.get('provider') || 'instagram';
+        
+        // For Facebook (token in fragment)
+        const accessToken = hashParams.get('access_token');
+        const expiresIn = hashParams.get('expires_in');
+        
+        // For Google (code in query)
+        const code = urlParams.get('code');
+        const state = urlParams.get('state');
+        const error = urlParams.get('error') || hashParams.get('error');
+        
+        // Build redirect URL
+        let redirectURL = 'auriyastudio://oauth-callback?provider=' + provider;
+        
+        if (error) {
+            // Redirect with error
+            redirectURL += '&error=' + encodeURIComponent(error);
+        } else if (accessToken) {
+            // Facebook OAuth - token in fragment
+            redirectURL += '#access_token=' + encodeURIComponent(accessToken);
+            if (expiresIn) {
+                redirectURL += '&expires_in=' + encodeURIComponent(expiresIn);
+            }
+        } else if (code) {
+            // Google OAuth - code in query
+            redirectURL += '&code=' + encodeURIComponent(code);
+            if (state) {
+                redirectURL += '&state=' + encodeURIComponent(state);
+            }
+        }
+        
+        // Redirect to app
+        window.location.href = redirectURL;
+    </script>
+</head>
+<body>
+    <p>Redirecting to Auriya Studio...</p>
+    <p>If you are not redirected automatically, <a href="auriyastudio://oauth-callback">click here</a>.</p>
+</body>
+</html>
+
