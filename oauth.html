@@ -4,6 +4,39 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>OAuth Redirect</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 2rem;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            text-align: center;
+        }
+        .container {
+            max-width: 500px;
+        }
+        h1 {
+            margin-bottom: 1rem;
+        }
+        p {
+            margin: 0.5rem 0;
+        }
+        a {
+            color: white;
+            text-decoration: underline;
+        }
+        .error {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 1rem;
+            border-radius: 8px;
+            margin-top: 1rem;
+        }
+    </style>
     <script>
         // Extract OAuth parameters from URL
         const urlParams = new URLSearchParams(window.location.search);
@@ -49,32 +82,56 @@
         console.log('  State:', state);
         console.log('  Error:', error);
         
-        // Build redirect URL
-        let redirectURL = 'auriyastudio://oauth-callback?provider=' + provider;
-        
-        if (error) {
-            // Redirect with error
-            redirectURL += '&error=' + encodeURIComponent(error);
-        } else if (accessToken) {
-            // Facebook OAuth - token in fragment
-            redirectURL += '#access_token=' + encodeURIComponent(accessToken);
-            if (expiresIn) {
-                redirectURL += '&expires_in=' + encodeURIComponent(expiresIn);
+        // Only redirect if we have OAuth data (token, code, or error)
+        if (accessToken || code || error) {
+            // Build redirect URL
+            let redirectURL = 'auriyastudio://oauth-callback?provider=' + provider;
+            
+            if (error) {
+                // Redirect with error
+                redirectURL += '&error=' + encodeURIComponent(error);
+            } else if (accessToken) {
+                // Facebook OAuth - token in fragment
+                redirectURL += '#access_token=' + encodeURIComponent(accessToken);
+                if (expiresIn) {
+                    redirectURL += '&expires_in=' + encodeURIComponent(expiresIn);
+                }
+            } else if (code) {
+                // Google OAuth - code in query
+                redirectURL += '&code=' + encodeURIComponent(code);
+                if (state) {
+                    redirectURL += '&state=' + encodeURIComponent(state);
+                }
             }
-        } else if (code) {
-            // Google OAuth - code in query
-            redirectURL += '&code=' + encodeURIComponent(code);
-            if (state) {
-                redirectURL += '&state=' + encodeURIComponent(state);
-            }
+            
+            // Redirect to app
+            console.log('Redirecting to:', redirectURL);
+            window.location.href = redirectURL;
+        } else {
+            // No OAuth data - show message instead of redirecting
+            console.log('No OAuth data found - this is a test page');
+            document.body.innerHTML = `
+                <div class="container">
+                    <h1>Auriya Studio</h1>
+                    <p>OAuth Redirect Endpoint</p>
+                    <div class="error">
+                        <p><strong>No OAuth data received</strong></p>
+                        <p>This endpoint is used for OAuth callbacks from Facebook and Google.</p>
+                        <p>If you're testing the OAuth flow, initiate it from the iOS app.</p>
+                    </div>
+                    <p style="margin-top: 2rem;">
+                        <a href="auriyastudio://oauth-callback?provider=instagram">Test App Link (will only work if app is installed)</a>
+                    </p>
+                </div>
+            `;
         }
-        
-        // Redirect to app
-        window.location.href = redirectURL;
     </script>
 </head>
 <body>
-    <p>Redirecting to Auriya Studio...</p>
-    <p>If you are not redirected automatically, <a href="auriyastudio://oauth-callback">click here</a>.</p>
+    <div class="container">
+        <h1>Auriya Studio</h1>
+        <p>Redirecting to Auriya Studio...</p>
+        <p>If you are not redirected automatically, <a href="auriyastudio://oauth-callback">click here</a>.</p>
+    </div>
 </body>
 </html>
