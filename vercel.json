@@ -1,0 +1,14 @@
+{
+  "rewrites": [
+    {
+      "source": "/oauth/facebook",
+      "destination": "/oauth.html"
+    },
+    {
+      "source": "/oauth/google",
+      "destination": "/oauth.html"
+    }
+  ],
+  "cleanUrls": true
+}
+
