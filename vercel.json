@@ -7,8 +7,11 @@
     {
       "source": "/oauth/google",
       "destination": "/oauth.html"
+    },
+    {
+      "source": "/oauth",
+      "destination": "/oauth.html"
     }
-  ],
-  "cleanUrls": true
+  ]
 }
 
