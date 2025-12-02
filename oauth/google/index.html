@@ -59,8 +59,15 @@
         // If not in query, try to extract from state parameter
         if (!provider && state) {
             try {
-                // State format: base64(provider:uuid)
-                const decodedState = atob(state);
+                // State format: URL-safe base64(provider:uuid)
+                // Convert URL-safe base64 back to standard base64
+                // Replace - with +, _ with /, and add padding if needed
+                let base64State = state.replace(/-/g, '+').replace(/_/g, '/');
+                // Add padding if needed (base64 strings should be multiple of 4)
+                while (base64State.length % 4) {
+                    base64State += '=';
+                }
+                const decodedState = atob(base64State);
                 const parts = decodedState.split(':');
                 if (parts.length >= 1) {
                     provider = parts[0];
@@ -71,8 +78,16 @@
             }
         }
         
-        // Default to instagram if still not found
-        provider = provider || 'instagram';
+        // Default based on OAuth data type
+        // If we have a code (Google OAuth), default to youtube
+        // If we have access_token (Facebook OAuth), default to instagram
+        if (!provider) {
+            if (code) {
+                provider = 'youtube'; // Google OAuth code means YouTube
+            } else {
+                provider = 'instagram'; // Facebook token means Instagram
+            }
+        }
         
         // Debug logging
         console.log('OAuth Redirect Debug:');
@@ -92,6 +107,12 @@
                 redirectURL += '&error=' + encodeURIComponent(error);
             } else if (accessToken) {
                 // Facebook OAuth - token in fragment
+                // Also add to query parameters as fallback (in case fragment is lost)
+                redirectURL += '&access_token=' + encodeURIComponent(accessToken);
+                if (expiresIn) {
+                    redirectURL += '&expires_in=' + encodeURIComponent(expiresIn);
+                }
+                // Add fragment for primary token location
                 redirectURL += '#access_token=' + encodeURIComponent(accessToken);
                 if (expiresIn) {
                     redirectURL += '&expires_in=' + encodeURIComponent(expiresIn);
